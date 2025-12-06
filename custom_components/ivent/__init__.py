@@ -7,6 +7,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+# DODANO: Uvozimo device_registry in DeviceEntryType
+from homeassistant.helpers import device_registry as dr 
 
 from .const import DOMAIN, PLATFORMS
 from .api import IVentApiClient, IVentApiClientError
@@ -26,7 +28,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async def async_update_data():
         """Pridobi najnovejše podatke iz API-ja."""
         try:
-            # Vzporedno pridobimo oba vira podatkov
             info_data, schedules_data = await asyncio.gather(
                 client.async_get_info(),
                 client.async_get_schedules(),
@@ -47,8 +48,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await coordinator.async_config_entry_first_refresh()
     hass.data[DOMAIN][entry.entry_id] = coordinator
 
+    # --- ZAČETEK POPRAVKA ---
+    # Ustvarimo glavno "servisno" napravo, na katero se vežejo vse ostale (via_device)
+    device_registry = dr.async_get(hass)
+    device_registry.async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={(DOMAIN, entry.entry_id)},
+        manufacturer="i-Vent",
+        name="i-Vent System",
+        model="Cloud Location",
+        entry_type=dr.DeviceEntryType.SERVICE,
+        configuration_url="https://cloud.i-vent.com/"
+    )
+    # --- KONEC POPRAVKA ---
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
+    # ... (preostanek kode za servise ostane enak) ...
+    
     async def handle_create_group(call: ServiceCall):
         await client.async_create_group(call.data["name"])
         await coordinator.async_request_refresh()
