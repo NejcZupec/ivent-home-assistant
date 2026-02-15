@@ -1,10 +1,10 @@
 {
   "domain": "ivent",
   "name": "i-Vent Smart Home",
-  "documentation": "https://github.com/uporabnik/home-assistant-ivent",
-  "issue_tracker": "https://github.com/uporabnik/home-assistant-ivent/issues",
+  "documentation": "https://github.com/JernejHren/ivent-home-assistant",
+  "issue_tracker": "https://github.com/JernejHren/ivent-home-assistant/issues",
   "codeowners": [
-    "@uporabnik"
+    "@JernejHren"
   ],
   "config_flow": true,
   "iot_class": "cloud_polling",
