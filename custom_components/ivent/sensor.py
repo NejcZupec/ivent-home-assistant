@@ -37,6 +37,7 @@ async def async_setup_entry(
             if device["mac_address"] not in all_devices:
                 all_devices[device["mac_address"]] = device
                 entities.append(IVentRssiSensor(coordinator, device))
+                entities.append(IVentAirflowDirectionSensor(coordinator, device))
 
     async_add_entities(entities)
 
@@ -85,6 +86,20 @@ class IVentRssiSensor(IVentBaseDeviceSensor):
     @property
     def native_value(self) -> int | None:
         return self._device_data.get("rssi")
+
+
+class IVentAirflowDirectionSensor(IVentBaseDeviceSensor):
+    """Predstavlja senzor za smer pretoka zraka."""
+
+    def __init__(self, coordinator: DataUpdateCoordinator, device_data: Dict[str, Any]):
+        super().__init__(coordinator, device_data)
+        self._attr_unique_id = f"{self._device_mac}_airflow_direction"
+        self._attr_name = "Smer pretoka zraka"
+        self._attr_icon = "mdi:air-filter"
+
+    @property
+    def native_value(self) -> str | None:
+        return self._device_data.get("airflow_direction")
 
 
 class IVentTimestampSensor(CoordinatorEntity, SensorEntity):
